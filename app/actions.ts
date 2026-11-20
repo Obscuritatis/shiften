@@ -18,7 +18,11 @@ export async function inloggen(formData: FormData) {
     email: String(formData.get("email")),
     password: String(formData.get("wachtwoord")),
   });
-  if (error) metFout("/login", "E-mailadres of wachtwoord klopt niet.");
+  if (error) {
+    if (error.code === "email_not_confirmed")
+      metFout("/login", "Je e-mailadres is nog niet bevestigd. Klik eerst op de link in de bevestigingsmail (kijk ook bij spam).");
+    metFout("/login", "E-mailadres of wachtwoord klopt niet.");
+  }
   redirect("/shifts");
 }
 
