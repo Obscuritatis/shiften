@@ -201,7 +201,7 @@ grant execute on function public.bezetting(bigint), public.is_admin(), public.is
 -- ---------- Startdata (pas aan naar jullie functies) ----------
 
 insert into public.functies (naam) values
-  ('Verpleegkundige'), ('Zorgkundige'), ('Logistiek'), ('Onthaal')
+  ('Verpleegkundige'), ('Zorgkundige'), ('Administratieve functie')
 on conflict (naam) do nothing;
 
 -- ---------- Eerste beheerder ----------
