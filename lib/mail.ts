@@ -1,3 +1,4 @@
+import nodemailer from "nodemailer";
 import { huisstijl } from "@/lib/huisstijl";
 import { formatDatum, formatUur } from "@/lib/datum";
 
@@ -13,16 +14,19 @@ export type ShiftInfo = {
 
 const kleur = "#1f4e79"; // zelfde als --kleur-primair in globals.css
 
-/** Verstuurt een mail via Resend. Zonder RESEND_API_KEY wordt er niets verstuurd. */
-export async function stuurMail(opties: {
-  aan: string;
-  onderwerp: string;
-  html: string;
-  ics?: string;
-}) {
+type MailOpties = { aan: string; onderwerp: string; html: string; ics?: string };
+
+/**
+ * Verstuurt een mail. Twee mogelijkheden:
+ * 1. SMTP: een bestaande mailbox (Gmail, Outlook/Microsoft 365, ...) via SMTP_HOST, SMTP_USER, SMTP_PASS
+ * 2. Resend: via RESEND_API_KEY
+ * Is geen van beide ingesteld, dan wordt er niets verstuurd.
+ */
+export async function stuurMail(opties: MailOpties) {
+  if (process.env.SMTP_HOST) return stuurViaSmtp(opties);
   const key = process.env.RESEND_API_KEY;
   if (!key) {
-    console.warn("RESEND_API_KEY ontbreekt: mail niet verstuurd naar", opties.aan);
+    console.warn("Geen mailinstellingen: mail niet verstuurd naar", opties.aan);
     return false;
   }
   const res = await fetch("https://api.resend.com/emails", {
@@ -40,6 +44,29 @@ export async function stuurMail(opties: {
   });
   if (!res.ok) console.error("Mail versturen mislukt:", res.status, await res.text());
   return res.ok;
+}
+
+async function stuurViaSmtp(opties: MailOpties) {
+  const poort = Number(process.env.SMTP_PORT ?? 587);
+  const transport = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: poort,
+    secure: poort === 465,
+    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  });
+  try {
+    await transport.sendMail({
+      from: process.env.MAIL_AFZENDER ?? `${huisstijl.organisatie} <${process.env.SMTP_USER}>`,
+      to: opties.aan,
+      subject: opties.onderwerp,
+      html: opties.html,
+      icalEvent: opties.ics ? { filename: "shift.ics", method: "PUBLISH", content: opties.ics } : undefined,
+    });
+    return true;
+  } catch (e) {
+    console.error("SMTP-mail mislukt:", e);
+    return false;
+  }
 }
 
 const esc = (t: string) =>

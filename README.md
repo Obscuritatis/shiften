@@ -57,7 +57,12 @@ Instellen:
 2. Voeg bij Resend onder *Domains* jullie domein toe en zet de DNS-records die Resend toont. Zonder eigen domein kan Resend enkel naar je eigen e-mailadres mailen (handig om te testen).
 3. Zet in Vercel bij *Settings > Environment Variables*: `RESEND_API_KEY`, `MAIL_AFZENDER` (bv. `Shiften <shiften@jouwdomein.be>`), `CRON_SECRET` (een lange willekeurige tekst) en, als die er nog niet staat, `SUPABASE_SECRET_KEY` (Supabase > API Keys > *secret key*). Klik daarna op *Redeploy*.
 
-Zonder `RESEND_API_KEY` werkt alles gewoon, alleen worden er geen mails verstuurd.
+**Alternatief zonder extra account: een bestaande mailbox (SMTP).** Zet dan in plaats van `RESEND_API_KEY`:
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` (en eventueel `MAIL_AFZENDER`)
+- Gmail: `smtp.gmail.com`, poort `587`, je Gmail-adres en een *app-wachtwoord* (Google-account > Beveiliging > tweestapsverificatie > App-wachtwoorden)
+- Outlook / Microsoft 365: `smtp.office365.com`, poort `587`. Bij een organisatieaccount moet IT "SMTP AUTH" voor die mailbox toelaten.
+
+Is er niets ingesteld, dan werkt alles gewoon, alleen worden er geen mails verstuurd.
 
 ## Huisstijl aanpassen
 - **Kleuren en lettertype**: bovenaan `app/globals.css` (de variabelen onder `:root`).
