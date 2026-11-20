@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { vereisAdmin, vereisProfiel } from "@/lib/auth";
 import { lokaalNaarIso } from "@/lib/datum";
+import { siteUrl } from "@/lib/env";
 
 const metFout = (pad: string, fout: string) => redirect(`${pad}?fout=${encodeURIComponent(fout)}`);
 const metMelding = (pad: string, melding: string) => redirect(`${pad}?melding=${encodeURIComponent(melding)}`);
@@ -32,7 +33,7 @@ export async function registreren(formData: FormData) {
     password: String(formData.get("wachtwoord")),
     options: {
       data: { naam, functie_id: functieId },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+      emailRedirectTo: `${siteUrl()}/auth/callback`,
     },
   });
   if (error) metFout("/registreer", error.message);
