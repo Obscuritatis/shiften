@@ -57,6 +57,15 @@ Instellen:
 2. Voeg bij Resend onder *Domains* jullie domein toe en zet de DNS-records die Resend toont. Zonder eigen domein kan Resend enkel naar je eigen e-mailadres mailen (handig om te testen).
 3. Zet in Vercel bij *Settings > Environment Variables*: `RESEND_API_KEY`, `MAIL_AFZENDER` (bv. `Shiften <shiften@jouwdomein.be>`), `CRON_SECRET` (een lange willekeurige tekst) en, als die er nog niet staat, `SUPABASE_SECRET_KEY` (Supabase > API Keys > *secret key*). Klik daarna op *Redeploy*.
 
+**Outlook / Microsoft 365 (aanbevolen als jullie Microsoft 365 hebben).** Geen extra account nodig; iemand met beheerrechten op Microsoft 365 doet eenmalig:
+1. [entra.microsoft.com](https://entra.microsoft.com) > *App registrations* > *New registration*, naam `Shiften`.
+2. *API permissions* > *Add* > *Microsoft Graph* > *Application permissions* > `Mail.Send` > *Grant admin consent*.
+3. *Certificates & secrets* > *New client secret*; noteer de waarde.
+4. Beperk de app tot één mailbox (aanbevolen) met een [Application Access Policy](https://learn.microsoft.com/graph/auth-limit-mailbox-access).
+5. Zet in Vercel: `MS_TENANT_ID` (Directory ID), `MS_CLIENT_ID` (Application ID), `MS_CLIENT_SECRET` en `MS_MAILBOX` (bv. `shiften@jullie-domein.be`).
+
+Microsoft schakelt het oude inloggen met wachtwoord via SMTP vanaf eind december 2026 standaard uit, daarom is deze manier de duurzame keuze voor Outlook.
+
 **Alternatief zonder extra account: een bestaande mailbox (SMTP).** Zet dan in plaats van `RESEND_API_KEY`:
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` (en eventueel `MAIL_AFZENDER`)
 - Gmail: `smtp.gmail.com`, poort `587`, je Gmail-adres en een *app-wachtwoord* (Google-account > Beveiliging > tweestapsverificatie > App-wachtwoorden)

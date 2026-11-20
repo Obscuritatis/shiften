@@ -18,11 +18,13 @@ type MailOpties = { aan: string; onderwerp: string; html: string; ics?: string }
 
 /**
  * Verstuurt een mail. Twee mogelijkheden:
+ * 0. Microsoft 365 (aanbevolen voor Outlook): via MS_TENANT_ID, MS_CLIENT_ID, MS_CLIENT_SECRET, MS_MAILBOX
  * 1. SMTP: een bestaande mailbox (Gmail, Outlook/Microsoft 365, ...) via SMTP_HOST, SMTP_USER, SMTP_PASS
  * 2. Resend: via RESEND_API_KEY
  * Is geen van beide ingesteld, dan wordt er niets verstuurd.
  */
 export async function stuurMail(opties: MailOpties) {
+  if (process.env.MS_CLIENT_ID) return stuurViaMicrosoft(opties);
   if (process.env.SMTP_HOST) return stuurViaSmtp(opties);
   const key = process.env.RESEND_API_KEY;
   if (!key) {
@@ -44,6 +46,58 @@ export async function stuurMail(opties: MailOpties) {
   });
   if (!res.ok) console.error("Mail versturen mislukt:", res.status, await res.text());
   return res.ok;
+}
+
+/** Microsoft 365 via Graph API (app-registratie in jullie eigen Microsoft 365, met Mail.Send-recht). */
+async function stuurViaMicrosoft(opties: MailOpties) {
+  try {
+    const tokenRes = await fetch(
+      `https://login.microsoftonline.com/${process.env.MS_TENANT_ID}/oauth2/v2.0/token`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_id: process.env.MS_CLIENT_ID!,
+          client_secret: process.env.MS_CLIENT_SECRET!,
+          scope: "https://graph.microsoft.com/.default",
+          grant_type: "client_credentials",
+        }),
+      }
+    );
+    if (!tokenRes.ok) throw new Error(`token ${tokenRes.status}: ${await tokenRes.text()}`);
+    const { access_token } = (await tokenRes.json()) as { access_token: string };
+
+    const res = await fetch(
+      `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(process.env.MS_MAILBOX!)}/sendMail`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${access_token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: {
+            subject: opties.onderwerp,
+            body: { contentType: "HTML", content: opties.html },
+            toRecipients: [{ emailAddress: { address: opties.aan } }],
+            attachments: opties.ics
+              ? [
+                  {
+                    "@odata.type": "#microsoft.graph.fileAttachment",
+                    name: "shift.ics",
+                    contentType: "text/calendar",
+                    contentBytes: Buffer.from(opties.ics).toString("base64"),
+                  },
+                ]
+              : [],
+          },
+          saveToSentItems: false,
+        }),
+      }
+    );
+    if (!res.ok) throw new Error(`sendMail ${res.status}: ${await res.text()}`);
+    return true;
+  } catch (e) {
+    console.error("Microsoft 365-mail mislukt:", e);
+    return false;
+  }
 }
 
 async function stuurViaSmtp(opties: MailOpties) {
