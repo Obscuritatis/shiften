@@ -189,6 +189,15 @@ create policy "zelf inschrijven" on public.inschrijvingen for insert with check 
 drop policy if exists "zelf uitschrijven" on public.inschrijvingen;
 create policy "zelf uitschrijven" on public.inschrijvingen for delete using (user_id = auth.uid() or public.is_admin());
 
+-- ---------- Rechten voor de app ----------
+-- Nieuwe Supabase-projecten geven tabellen niet meer automatisch vrij aan de app.
+-- De RLS-regels hierboven bepalen daarna wie wat mag zien.
+grant usage on schema public to anon, authenticated;
+grant select on public.functies to anon, authenticated;
+grant select, insert, update, delete on public.functies, public.profiles, public.shifts, public.inschrijvingen to authenticated;
+grant usage, select on all sequences in schema public to authenticated;
+grant execute on function public.bezetting(bigint), public.is_admin(), public.is_goedgekeurd(), public.mijn_functie() to anon, authenticated;
+
 -- ---------- Startdata (pas aan naar jullie functies) ----------
 
 insert into public.functies (naam) values
