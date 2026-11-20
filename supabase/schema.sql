@@ -43,6 +43,9 @@ create table if not exists public.inschrijvingen (
   unique (shift_id, user_id)
 );
 
+-- Dienst (afdeling) van een shift, vrij in te vullen
+alter table public.shifts add column if not exists dienst text;
+
 create index if not exists inschrijvingen_shift_idx on public.inschrijvingen(shift_id);
 create index if not exists shifts_start_idx on public.shifts(start_tijd);
 

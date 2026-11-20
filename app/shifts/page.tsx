@@ -7,6 +7,7 @@ type Shift = {
   id: number;
   titel: string;
   omschrijving: string | null;
+  dienst: string | null;
   locatie: string | null;
   start_tijd: string;
   eind_tijd: string;
@@ -37,7 +38,7 @@ export default async function ShiftsPagina({
   // RLS zorgt dat je enkel shiften van je eigen functie ziet (beheerders zien alles)
   let query = supabase
     .from("shifts")
-    .select("id, titel, omschrijving, locatie, start_tijd, eind_tijd, capaciteit")
+    .select("id, titel, omschrijving, dienst, locatie, start_tijd, eind_tijd, capaciteit")
     .gte("start_tijd", new Date().toISOString())
     .order("start_tijd");
   if (profiel.functie_id) query = query.eq("functie_id", profiel.functie_id);
@@ -67,6 +68,7 @@ export default async function ShiftsPagina({
         <p className="meta">
           {formatDatum(s.start_tijd)}, {formatUur(s.start_tijd)} tot {formatUur(s.eind_tijd)}
         </p>
+        {s.dienst && <p className="meta">Dienst: {s.dienst}</p>}
         {s.locatie && <p className="meta">{s.locatie}</p>}
         {s.omschrijving && <p>{s.omschrijving}</p>}
         <div className="acties">

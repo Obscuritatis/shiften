@@ -99,6 +99,7 @@ export async function shiftAanmaken(formData: FormData) {
   const { error } = await supabase.from("shifts").insert({
     titel: String(formData.get("titel")),
     omschrijving: String(formData.get("omschrijving") ?? "") || null,
+    dienst: String(formData.get("dienst") ?? "").trim() || null,
     locatie: String(formData.get("locatie") ?? "") || null,
     start_tijd: lokaalNaarIso(String(formData.get("start_tijd"))),
     eind_tijd: lokaalNaarIso(String(formData.get("eind_tijd"))),

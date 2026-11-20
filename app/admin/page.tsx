@@ -16,7 +16,7 @@ export default async function AdminPagina({
     supabase.from("profiles").select("id, naam, email, functie_id, rol, status").order("created_at", { ascending: false }),
     supabase
       .from("shifts")
-      .select("id, titel, locatie, start_tijd, eind_tijd, capaciteit, functies(naam), inschrijvingen(profiles(naam))")
+      .select("id, titel, dienst, locatie, start_tijd, eind_tijd, capaciteit, functies(naam), inschrijvingen(profiles(naam))")
       .gte("eind_tijd", new Date().toISOString())
       .order("start_tijd"),
   ]);
@@ -51,6 +51,10 @@ export default async function AdminPagina({
             <input id="eind_tijd" name="eind_tijd" type="datetime-local" required />
           </div>
           <div>
+            <label htmlFor="dienst">Dienst</label>
+            <input id="dienst" name="dienst" placeholder="bv. Spoed, Geriatrie" />
+          </div>
+          <div>
             <label htmlFor="locatie">Locatie</label>
             <input id="locatie" name="locatie" />
           </div>
@@ -80,7 +84,7 @@ export default async function AdminPagina({
                 return (
                   <tr key={s.id}>
                     <td>{formatDatum(s.start_tijd)}<br /><span className="zacht">{formatUur(s.start_tijd)} tot {formatUur(s.eind_tijd)}</span></td>
-                    <td>{s.titel}{s.locatie && <><br /><span className="zacht">{s.locatie}</span></>}</td>
+                    <td>{s.titel}{(s.dienst || s.locatie) && <><br /><span className="zacht">{[s.dienst, s.locatie].filter(Boolean).join(" · ")}</span></>}</td>
                     <td>{functie}</td>
                     <td>{namen.length} / {s.capaciteit}</td>
                     <td>{namen.join(", ") || <span className="zacht">niemand</span>}</td>
