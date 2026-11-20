@@ -48,12 +48,23 @@ update public.profiles set rol = 'admin', status = 'goedgekeurd' where email = '
 ```
 Daarna kan je alle andere accounts goedkeuren via `/admin`.
 
+## Mails: bevestiging en herinnering
+- Bij elke inschrijving krijgt de medewerker een **bevestigingsmail** met een agenda-bijlage (`.ics`).
+- Elke dag om 17u (Belgische wintertijd, 18u in de zomer) stuurt Vercel een **herinnering** voor alle shiften van de volgende dag (`vercel.json` + `app/api/herinneringen`).
+
+Instellen:
+1. Maak een gratis account op [resend.com](https://resend.com) (3.000 mails per maand gratis) en maak een API key.
+2. Voeg bij Resend onder *Domains* jullie domein toe en zet de DNS-records die Resend toont. Zonder eigen domein kan Resend enkel naar je eigen e-mailadres mailen (handig om te testen).
+3. Zet in Vercel bij *Settings > Environment Variables*: `RESEND_API_KEY`, `MAIL_AFZENDER` (bv. `Shiften <shiften@jouwdomein.be>`), `CRON_SECRET` (een lange willekeurige tekst) en, als die er nog niet staat, `SUPABASE_SECRET_KEY` (Supabase > API Keys > *secret key*). Klik daarna op *Redeploy*.
+
+Zonder `RESEND_API_KEY` werkt alles gewoon, alleen worden er geen mails verstuurd.
+
 ## Huisstijl aanpassen
 - **Kleuren en lettertype**: bovenaan `app/globals.css` (de variabelen onder `:root`).
 - **Naam en logo**: `lib/huisstijl.ts`. Zet het logo in de map `public/` (bv. `public/logo.svg`) en vul `logo: "/logo.svg"` in.
 
 ## Mogelijke volgende stappen
-- E-mailmelding bij een nieuwe shift of bij goedkeuring van je account
+- E-mailmelding bij een nieuwe shift of bij goedkeuring van je account (bevestiging en herinnering bestaan al)
 - Meerdere functies per medewerker
 - Uitschrijven enkel tot X uur vóór de shift
 - Herhalende shiften (bv. elke maandag) en een kalenderweergave

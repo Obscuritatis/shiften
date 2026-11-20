@@ -43,6 +43,9 @@ create table if not exists public.inschrijvingen (
   unique (shift_id, user_id)
 );
 
+-- Wanneer de herinnering (dag voordien) verstuurd is
+alter table public.inschrijvingen add column if not exists herinnering_verstuurd timestamptz;
+
 -- Dienst (afdeling) van een shift, vrij in te vullen
 alter table public.shifts add column if not exists dienst text;
 
@@ -199,6 +202,8 @@ grant usage on schema public to anon, authenticated;
 grant select on public.functies to anon, authenticated;
 grant select, insert, update, delete on public.functies, public.profiles, public.shifts, public.inschrijvingen to authenticated;
 grant usage, select on all sequences in schema public to authenticated;
+grant all on all tables in schema public to service_role;
+grant usage, select on all sequences in schema public to service_role;
 grant execute on function public.bezetting(bigint), public.is_admin(), public.is_goedgekeurd(), public.mijn_functie() to anon, authenticated;
 
 -- ---------- Startdata (pas aan naar jullie functies) ----------

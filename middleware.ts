@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pad = request.nextUrl.pathname;
-  const publiek = pad.startsWith("/login") || pad.startsWith("/registreer") || pad.startsWith("/auth");
+  const publiek = pad.startsWith("/login") || pad.startsWith("/registreer") || pad.startsWith("/auth") || pad.startsWith("/api");
   if (!user && !publiek) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";

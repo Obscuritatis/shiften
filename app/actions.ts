@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { vereisAdmin, vereisProfiel } from "@/lib/auth";
 import { lokaalNaarIso } from "@/lib/datum";
 import { siteUrl } from "@/lib/env";
+import { bevestigingsMail, stuurMail, type ShiftInfo } from "@/lib/mail";
 
 const metFout = (pad: string, fout: string) => redirect(`${pad}?fout=${encodeURIComponent(fout)}`);
 const metMelding = (pad: string, melding: string) => redirect(`${pad}?melding=${encodeURIComponent(melding)}`);
@@ -57,15 +58,27 @@ export async function uitloggen() {
 
 export async function inschrijven(formData: FormData) {
   const { supabase, profiel } = await vereisProfiel();
+  const shiftId = Number(formData.get("shift_id"));
   const { error } = await supabase
     .from("inschrijvingen")
-    .insert({ shift_id: Number(formData.get("shift_id")), user_id: profiel.id });
+    .insert({ shift_id: shiftId, user_id: profiel.id });
   if (error) {
     const bekend = error.message.match(/(niet bedoeld|volzet|goedgekeurd|voorbij)/);
     metFout("/shifts", bekend ? error.message : error.code === "23505" ? "Je bent al ingeschreven." : "Inschrijven lukte niet.");
   }
+  // Bevestigingsmail; een mislukte mail mag de inschrijving niet tegenhouden
+  try {
+    const { data: shift } = await supabase
+      .from("shifts")
+      .select("id, titel, dienst, locatie, omschrijving, start_tijd, eind_tijd")
+      .eq("id", shiftId)
+      .single<ShiftInfo>();
+    if (shift) await stuurMail({ aan: profiel.email, ...bevestigingsMail(profiel.naam, shift, siteUrl()) });
+  } catch (e) {
+    console.error("Bevestigingsmail mislukt", e);
+  }
   revalidatePath("/shifts");
-  metMelding("/shifts", "Je bent ingeschreven.");
+  metMelding("/shifts", "Je bent ingeschreven. Je krijgt een bevestigingsmail.");
 }
 
 export async function uitschrijven(formData: FormData) {
